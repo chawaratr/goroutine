@@ -1,7 +1,9 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"time"
 
 	"github.com/chawaratr/goroutine/pkg/eroutine"
 )
@@ -14,19 +16,35 @@ func main() {
 	}()
 	fmt.Println("hello")
 
-	g := eroutine.New()
-	g.Begin()
-	for i := 0; i < 10; i++ {
-		g.Do(func() {
-			fmt.Println("inside cb eroutine")
-			for i := 0; i < 10000000000; i++ {
+	//Start Routine Here
+	gRoutine := eroutine.New()
 
-			}
+	var err error
+	for i := 0; i < 3; i++ {
+		time.Sleep(time.Second * 10)
+		err = gRoutine.Try(func() error {
+			fmt.Println("inside cb eroutine")
+			time.Sleep(time.Second * 5)
+
+			return errors.New("Business error")
 		})
-		g = nil
+		if err != nil {
+			buildError(err)
+			return
+		}
 	}
 
-	g.End()
+	err = gRoutine.End()
+	if err != nil {
+		buildError(err)
+		return
+	}
+	//!End Routine Here
 
-	fmt.Println(g)
+	fmt.Println("Normal End")
+
+}
+
+func buildError(err error) {
+	fmt.Println("Main process with error:", err.Error())
 }
